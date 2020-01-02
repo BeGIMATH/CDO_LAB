@@ -24,6 +24,7 @@ class LogisticRegression:
     """
 
     SOLVER_SELECTOR = {'gd': solvers.GD,
+                       'gd_prox': solvers.GD_prox,
                        'sgd': solvers.SGD,
                        'saga': solvers.SAGA,
                        'svrg': solvers.SVRG,
@@ -31,7 +32,7 @@ class LogisticRegression:
                        'saga_prox': solvers.SAGA_prox
                        }
 
-    def __init__(self, solver='gd', l1=0.0, l2=0.05, max_iter=100):
+    def __init__(self, solver='gd', l1=0.0, l2=0.1, max_iter=100):
 
         self.l1 = l1
         self.l2 = l2
@@ -83,10 +84,10 @@ class LogisticRegression:
             n = len(x)
             p = np.zeros(n)
             for i in range(n):
-                if x[i] < - self.l1*stepsize:
-                    p[i] = x[i] + self.l1*stepsize
-                if x[i] > self.l1*stepsize:
-                    p[i] = x[i] - self.l1*stepsize
+                if x[i] < - self.l1 * stepsize:
+                    p[i] = x[i] + self.l1 * stepsize
+                if x[i] > self.l1 * stepsize:
+                    p[i] = x[i] - self.l1 * stepsize
             return p
 
         # Last iterate of the optimization, and table of all the iterates
@@ -95,7 +96,7 @@ class LogisticRegression:
 
         self._empirical_risk = lambda x: sum(self._logistic_loss(A, b, x))/n \
             + self.l2/2.0 * \
-            np.linalg.norm(x, 2)  # + ######## TODO (8) ########
+            np.linalg.norm(x, 2) + self.l1*np.linalg.norm(x, 1)
 
     def decision_function(self, A):
         """
