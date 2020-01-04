@@ -26,13 +26,14 @@ class LogisticRegression:
     SOLVER_SELECTOR = {'gd': solvers.GD,
                        'gd_prox': solvers.GD_prox,
                        'sgd': solvers.SGD,
-                       'saga': solvers.SAGA,
-                       'svrg': solvers.SVRG,
                        'sgd_prox': solvers.SGD_prox,
-                       'saga_prox': solvers.SAGA_prox
+                       'saga': solvers.SAGA,
+                       'saga_prox': solvers.SAGA_prox,
+                       'svrg': solvers.SVRG,
+                       'svrg_prox': solvers.SVRG_prox,
                        }
 
-    def __init__(self, solver='gd', l1=0.0, l2=0.1, max_iter=100):
+    def __init__(self, solver='gd', l1=0.0, l2=0.05, max_iter=100):
 
         self.l1 = l1
         self.l2 = l2
@@ -60,7 +61,7 @@ class LogisticRegression:
 
         # Strong convexity constant
         mu = self.l2
-
+        # mu = 0.009
         # Initialisation of the solver
         x0 = np.zeros(A.shape[1])
 
@@ -70,14 +71,17 @@ class LogisticRegression:
             If no i is given, grad should return the batch gradient.
             Otherwise, it should return the partial gradient associated the the datapoint (A[i], b[i]).
             '''
-            output = -b/(1 + np.exp(b*np.dot(A, x)))
+            output = np.zeros(len(x))
             if i is None:  # return batch gradient
+                output = -b/(1 + np.exp(b*np.dot(A, x)))
                 output = sum(np.diag(output))/n @ A
                 output += self.l2*x
 
+            # return partial gradient associated the datapoint (A[i], b[i])
             else:
-                output = np.diag(output)/n @ A
-                return output[i]
+                output = A[i]/(1 + np.exp(b[i]*np.dot(A[i], x)))
+                output = -b[i]*output
+
             return output
 
         def prox(x, stepsize):
@@ -95,8 +99,7 @@ class LogisticRegression:
             x0, grad, prox, self.max_iter, n, L, mu)
 
         self._empirical_risk = lambda x: sum(self._logistic_loss(A, b, x))/n \
-            + self.l2/2.0 * \
-            np.linalg.norm(x, 2) + self.l1*np.linalg.norm(x, 1)
+            + self.l2/2.0 * np.linalg.norm(x, 2) + self.l1*np.linalg.norm(x, 1)
 
     def decision_function(self, A):
         """

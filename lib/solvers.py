@@ -28,13 +28,12 @@ def GD(x0, grad, prox, max_iter, n, L, mu):
     x_tab: array, shape (nb_features, max_iter)
         table of all the iterates
     '''
-    stepsize = 2.0 / L
+    stepsize = 1.0 / L
     x = x0
     x_tab = np.copy(x)
 
     for k in range(max_iter):
         x = x - stepsize*grad(x)
-    # if k % n == 0:  # each completed epoch
         x_tab = np.vstack((x_tab, x))
     return x, x_tab
 
@@ -46,7 +45,6 @@ def GD_prox(x0, grad, prox, max_iter, n, L, mu):
 
     for k in range(max_iter):
         x = prox(x - stepsize*grad(x), stepsize)
-    # if k % n == 0:  # each completed epoch
         x_tab = np.vstack((x_tab, x))
     return x, x_tab
 
@@ -57,11 +55,10 @@ def SGD(x0, grad, prox, max_iter, n, L, mu):
     x_tab = np.copy(x)
     for k in range(max_iter):
         t = random.randrange(1, n)
-        step = 1/(pow(k+1, 0.01))
+        step = 1/(pow(k+1, 0.3))
         x = x - step*grad(x, t)
-        # if k % n == 0:  # each completed epoch
-
-        x_tab = np.vstack((x_tab, x))
+        if k % n == 0:  # each completed epoch
+            x_tab = np.vstack((x_tab, x))
 
     return x, x_tab
 
@@ -71,10 +68,11 @@ def SGD_prox(x0, grad, prox, max_iter, n, L, mu):
     x_tab = np.copy(x)
     for k in range(max_iter):
         t = random.randrange(1, n)
-        step = 1/(pow(k+1, 0.01))
+
+        step = 1/(pow(k+1, 0.3))
         x = prox(x - step*grad(x, t), step)
-        # if k % n == 0:  # each completed epoch
-        x_tab = np.vstack((x_tab, x))
+        if k % n == 0:  # each completed epoch
+            x_tab = np.vstack((x_tab, x))
 
     return x, x_tab
 
@@ -89,12 +87,12 @@ def SAGA(x0, grad, prox, max_iter, n, L, mu):
     for i in range(n):
         A[i, :] = grad(x, i)
 
-    #step = 1 / (2*(mu*n + L))
+    step = 1 / (2*(mu*n + L))
     #step = 1/(3*(mu*n+L))
     #step = 1/(3*L)
     for k in range(max_iter):
         #step = 1/(pow(k+1, 0.7))
-        step = 1/(pow(k+1, 0.01))
+        #step = 1/(pow(k+1, 0.01))
         xprev = np.copy(x)
 
         j = random.randrange(1, n)
@@ -104,8 +102,8 @@ def SAGA(x0, grad, prox, max_iter, n, L, mu):
         x = x - step*(grad(x, j) - A[j, :] + alfa_bar)
         A[j, :] = grad(x, j)
 
-        # if (k % n == 0):  # each completed epoch
-        x_tab = np.vstack((x_tab, x))
+        if (k % n == 0):  # each completed epoch
+            x_tab = np.vstack((x_tab, x))
 
     return x, x_tab
 
@@ -119,9 +117,9 @@ def SAGA_prox(x0, grad, prox, max_iter, n, L, mu):
     A = np.zeros([n, d])
     for i in range(n):
         A[i, :] = grad(x, i)
-    #step = 1/(3*(mu*n+L))
+    step = 1 / (2*(mu*n + L))
     for k in range(max_iter):
-        step = 1/(pow(k+1, 0.7))
+        #step = 1/(pow(k+1, 0.7))
 
         j = random.randrange(1, n)
 
@@ -130,13 +128,33 @@ def SAGA_prox(x0, grad, prox, max_iter, n, L, mu):
         x = prox(x - step*(grad(x, j) - A[j, :] + alfa_bar), step)
         A[j, :] = grad(x, j)
 
-        # if (k % n == 0):  # each completed epoch
-        x_tab = np.vstack((x_tab, x))
+        if (k % n == 0):  # each completed epoch
+            x_tab = np.vstack((x_tab, x))
 
     return x, x_tab
 
 
 def SVRG(x0, grad, prox, max_iter, n, L, mu):
+    x = np.copy(x0)
+    x_tab = np.copy(x)
+    d = len(x)
+    step = 1/(3*(mu*n+L))
+    for k in range(max_iter):
+        #step = 1/(pow(k+1, 0.6))
+        G = grad(x)
+        y = x
+
+        for i in range(2):
+            e = random.randrange(1, n)
+            g = grad(y, e)-grad(x, e)+G
+            y = y-step*g
+        x = y
+        x_tab = np.vstack((x_tab, x))
+
+    return x, x_tab
+
+
+def SVRG_prox(x0, grad, prox, max_iter, n, L, mu):
     x = np.copy(x0)
     x_tab = np.copy(x)
     d = len(x)
@@ -149,7 +167,7 @@ def SVRG(x0, grad, prox, max_iter, n, L, mu):
             e = random.randrange(1, n)
             g = grad(y, e)-grad(x, e)+G
             y = y-step*g
-        x = y
+        x = prox(y, step)
         x_tab = np.vstack((x_tab, x))
 
     return x, x_tab
