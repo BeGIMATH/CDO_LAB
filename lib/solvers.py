@@ -88,11 +88,11 @@ def SAGA(x0, grad, prox, max_iter, n, L, mu):
     for i in range(n):
         A[i, :] = grad(x, i)
 
-    #step = 1 / (2*(mu*n + L))
+    step = 1 / (2*(mu*n + L))
     #step = 1/(3*(mu*n+L))
     #step = 1/(3*L)
     for k in range(max_iter):
-        step = 1/(pow(k+1, 0.7))
+        #step = 1/(pow(k+1, 0.7))
         #step = 1/(pow(k+1, 0.01))
         xprev = np.copy(x)
 
@@ -100,7 +100,7 @@ def SAGA(x0, grad, prox, max_iter, n, L, mu):
 
         alfa_bar = A.mean(0)
 
-        x = x - step*(grad(x, j) - A[j, :] + alfa_bar)
+        x = x*(1-step*mu) - step*(grad(x, j) - A[j, :] + alfa_bar)
         A[j, :] = grad(x, j)
 
         if (k % n == 0):  # each completed epoch
@@ -127,7 +127,7 @@ def SAGA_prox(x0, grad, prox, max_iter, n, L, mu):
 
         alfa_bar = A.mean(0)
 
-        x = prox(x - step*(grad(x, j) - A[j, :] + alfa_bar), step)
+        x = prox(x*(1-step*mu) - step*(grad(x, j) - A[j, :] + alfa_bar), step)
         A[j, :] = grad(x, j)
 
         if (k % n == 0):  # each completed epoch
@@ -140,7 +140,8 @@ def SVRG(x0, grad, prox, max_iter, n, L, mu):
     x = np.copy(x0)
     x_tab = np.copy(x)
     d = len(x)
-    step = 1/(3*(mu*n+L))
+
+    step = 1/(2*(mu*n+L))
     for k in range(max_iter):
         #step = 1/(pow(k+1, 0.6))
         G = grad(x)
@@ -160,7 +161,9 @@ def SVRG_prox(x0, grad, prox, max_iter, n, L, mu):
     x = np.copy(x0)
     x_tab = np.copy(x)
     d = len(x)
-    step = 1/(3*(mu*n+L))
+    step = 1/(2*(mu*n+L))
+
+    #step = 0.1 / L
     for k in range(max_iter):
         G = grad(x)
         y = x
