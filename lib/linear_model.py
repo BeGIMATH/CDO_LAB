@@ -80,7 +80,7 @@ class LogisticRegression:
             # return partial gradient associated the datapoint (A[i], b[i])
             else:
                 output = A[i]/(1 + np.exp(b[i]*np.dot(A[i], x)))
-                output = -b[i]*output
+                output = -b[i]*output + self.l2*x
 
             return output
 
