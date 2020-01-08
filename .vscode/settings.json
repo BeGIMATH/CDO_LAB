@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/home/begi/anaconda3/bin/python"
+    "python.pythonPath": "/home/begi/anaconda3/bin/python",
+    "C_Cpp.default.configurationProvider": "go2sh.cmake-integration"
 }

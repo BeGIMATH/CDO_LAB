@@ -28,7 +28,8 @@ def GD(x0, grad, prox, max_iter, n, L, mu):
     x_tab: array, shape (nb_features, max_iter)
         table of all the iterates
     '''
-    stepsize = 2.0 / L
+    
+    stepsize = 1.0 / L
     x = x0
     x_tab = np.copy(x)
 
@@ -39,7 +40,7 @@ def GD(x0, grad, prox, max_iter, n, L, mu):
 
 
 def GD_prox(x0, grad, prox, max_iter, n, L, mu):
-    stepsize = 2.0 / L
+    stepsize = 1.0 / L
     x = x0
     x_tab = np.copy(x)
 
@@ -53,8 +54,10 @@ def SGD(x0, grad, prox, max_iter, n, L, mu):
 
     x = np.copy(x0)
     x_tab = np.copy(x)
+    
     for k in range(max_iter):
         t = random.randrange(1, n)
+        
         step = 1/(pow(k+1, 0.6))
         x = x - step*grad(x, t)
         if k % n == 0:  # each completed epoch
@@ -69,7 +72,7 @@ def SGD_prox(x0, grad, prox, max_iter, n, L, mu):
     for k in range(max_iter):
         t = random.randrange(1, n)
 
-        step = 1/(pow(k+1, 0.6))
+        step = 1/(pow(k+1, 0.7))
         #step = mu / (k+1)
         x = prox(x - step*grad(x, t), step)
         if k % n == 0:  # each completed epoch
@@ -97,7 +100,7 @@ def SAGA(x0, grad, prox, max_iter, n, L, mu):
         f_grad_phi_k = A[j, :]
         alfa_bar = A.mean(0)
         A[j, :] = grad(x, j)
-        x = x*(1-step*mu) - step*(A[j, :] - f_grad_phi_k + alfa_bar)
+        x = x - step*(A[j, :] - f_grad_phi_k + alfa_bar)
 
         if (k % n == 0):  # each completed epoch-n
             x_tab = np.vstack((x_tab, x))
