@@ -21,7 +21,7 @@ def learning_curve(*models, **named_models):
     if named_models:
         for name, model in named_models.items():
             plt.plot(get_curve(model), linewidth=5.0, linestyle="-", label=name)
-
+     
         plt.grid(True)
         plt.legend(loc='best')
         plt.ylabel('Empirical Risk')
@@ -29,6 +29,32 @@ def learning_curve(*models, **named_models):
         plt.title('Learning curves')
 
     plt.show()
+
+def decay_curve(*models, **named_models):
+    """
+    Plot the decay curves of the algorithm wrt the number of epochs for all the models inputed.
+    The models can be passed as follows:
+        learning_curve(model0, model1, name2=model2, name3=model3)
+    where the `names` are display names.
+    """
+    plt.figure(figsize=(20,10))
+    if models:
+        for model in models:
+            plt.plot(get_decay(model), linewidth=5.0, linestyle="-")
+
+    if named_models:
+        for name, model in named_models.items():
+            plt.plot(get_decay(model), linewidth=5.0, linestyle="-", label=name)
+     
+        
+        plt.legend(loc='best')
+        plt.title('Decay curves')
+        plt.yscale('log')
+        plt.xscale('log')
+        plt.grid(True)
+        plt.show()
+    plt.show()
+
 
 
 def get_curve(model):
@@ -42,7 +68,7 @@ def get_curve(model):
 
     curve = [model._empirical_risk(x) for x in x_tab]
     return curve
-
+    
     
 def l1_regularization_plot(clf, A, b):
     """
@@ -50,7 +76,7 @@ def l1_regularization_plot(clf, A, b):
     """
     plt.figure(figsize=(20,10))
     l1_tab = np.power(2.0, np.array(range(-12,1)))
-
+    
     for l1 in l1_tab:
         clf_ = clf(l1)
         clf_.fit(A, b)
@@ -76,7 +102,7 @@ def l2_regularization_plot(clf, A, b):
     l2_tab = np.power(2.0, np.array(range(-8,6)))
     
     coefs = []
-
+    
     for i, l2 in enumerate(l2_tab):
         clf_ = clf(l2)
         clf_.fit(A, b)
@@ -92,3 +118,18 @@ def l2_regularization_plot(clf, A, b):
     plt.xscale('log')
     plt.title('Amplitude of the coefficients of the solution for various values of l2')
     plt.show()
+
+def get_decay(model):
+    """
+    Get the empirical risk values for each epoch
+    """
+    if not hasattr(model, "coef_"):
+        raise Exception("The model hasn't been fitted yet.")
+
+    x_tab = model._coef_tab
+    
+    decay = [np.linalg.norm(model.fit.grad(x)) for x in x_tab]
+    return decay
+
+    
+    
