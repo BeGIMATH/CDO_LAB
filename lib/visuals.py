@@ -30,31 +30,6 @@ def learning_curve(*models, **named_models):
 
     plt.show()
 
-def decay_curve(*models, **named_models):
-    """
-    Plot the decay curves of the algorithm wrt the number of epochs for all the models inputed.
-    The models can be passed as follows:
-        learning_curve(model0, model1, name2=model2, name3=model3)
-    where the `names` are display names.
-    """
-    plt.figure(figsize=(20,10))
-    if models:
-        for model in models:
-            plt.plot(get_decay(model), linewidth=5.0, linestyle="-")
-
-    if named_models:
-        for name, model in named_models.items():
-            plt.plot(get_decay(model), linewidth=5.0, linestyle="-", label=name)
-     
-        
-        plt.legend(loc='best')
-        plt.title('Decay curves')
-        plt.yscale('log')
-        plt.xscale('log')
-        plt.grid(True)
-        plt.show()
-    plt.show()
-
 
 
 def get_curve(model):
@@ -99,7 +74,7 @@ def l2_regularization_plot(clf, A, b):
     Plot showing the effect of L1 regularization
     """
     plt.figure(figsize=(20,10))
-    l2_tab = np.power(2.0, np.array(range(-8,6)))
+    l2_tab = np.power(2.0,'gd', 'sgd','saga', 'svrg' ,np.array(range(-8,6)))
     
     coefs = []
     
@@ -119,17 +94,53 @@ def l2_regularization_plot(clf, A, b):
     plt.title('Amplitude of the coefficients of the solution for various values of l2')
     plt.show()
 
-def get_decay(model):
-    """
-    Get the empirical risk values for each epoch
-    """
-    if not hasattr(model, "coef_"):
-        raise Exception("The model hasn't been fitted yet.")
 
-    x_tab = model._coef_tab
+def decay_plot(clf, A, b):
+    """
+    Plot showing the effect of L1 regularization
+    """
+    plt.figure(figsize=(20,10))
     
-    decay = [np.linalg.norm(model.fit.grad(x)) for x in x_tab]
-    return decay
+    solver = ['gd','sgd','saga','svrg']
+    G = np.zeros((len(solver),len(A[0])))
+    for i in range(len(solver)):
+        clf_ = clf(solver[i])
+        clf_.fit(A, b)
+        coef_tab = clf_._coef_tab
+        g = []
+        for i in range(coef_tab.shape[0]):
+            g.append( np.linalg.norm(grad(coef_tab[i],A,b )) )
+        G[i,:] = g
+        
+    
+    
+    plt.plot( G[0,:], color="black", linewidth=1.0, linestyle="-",label='gd')
+    plt.plot( G[1,:], color="black", linewidth=1.0, linestyle="-",label='sgd')
+    plt.plot( G[2,:], color="black", linewidth=1.0, linestyle="-",label='saga')
+    plt.plot( G[3,:], color="black", linewidth=1.0, linestyle="-",label='svrg')
+    plt.yscale('log')
+    plt.xscale('log')
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+ 
 
-    
-    
+
+def grad(x,A,b,i=None):
+            '''
+            Gradient of the objective function at x.
+            If no i is given, grad should return the batch gradient.
+            Otherwise, it should return the partial gradient associated the the datapoint (A[i], b[i]).
+            '''
+            output = np.zeros(len(x))
+            if i is None:  # return batch gradient
+                output = -b/(1 + np.exp(b*np.dot(A, x)))
+                output = sum(np.diag(output))/n @ A
+                output += self.l2*x
+
+            # return partial gradient associated the datapoint (A[i], b[i])
+            else:
+                output = A[i]/(1 + np.exp(b[i]*np.dot(A[i], x)))
+                output = -b[i]*output + self.l2*x
+
+            return output

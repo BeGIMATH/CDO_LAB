@@ -140,7 +140,7 @@ def SVRG(x0, grad, prox, max_iter, n, L, mu):
     x_tab = np.copy(x)
     d = len(x)
 
-    step = 1/(3*(mu*n+L))
+    step = 1/(2*(mu*n+L))
     for k in range(max_iter):
         #step = 1/(pow(k+1, 0.6))
         G = grad(x)
